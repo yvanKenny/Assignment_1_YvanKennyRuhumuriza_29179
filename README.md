@@ -1,4 +1,42 @@
-PL/SQL ASSIGNMENT ONE: SUNRISE SUPERMARKET DATABASE REPORTCourse: Database Systems / PL/SQLStudent Name:Ruhumuriza Yvan Kenny Student ID:29179 Academic Group: GroupB Submission Date: September 2026RDBMS Platform: Oracle Database 21c Express Edition (Release 21.3.0.0.0)Client Environment: Oracle SQL*Plus1. Executive Summary & Business Scenario1.1 Organizational ContextSunrise Supermarket is a regional grocery retailer operating across major urban markets, including Kigali, Musanze, Huye, and Rubavu. The supermarket provides consumers with essential retail products categorized across three primary departments: Produce, Dairy, and Bakery.1.2 Business ChallengeManagement requires clear, data-driven visibility into customer purchasing behaviors and transactional throughput. Key operational priorities include:Identifying customer geography and detecting registered accounts that remain inactive.Analyzing shopping basket composition to evaluate category volume.Segmenting high-value customers who contribute above-average revenue.Tracking repeat purchase cycles to determine customer retention and re-engagement windows.Monitoring storewide cumulative revenue velocity over time.2. System Architecture & Setup Instructions2.1 Technical PrerequisitesDBMS Engine: Oracle Database 21c Express Edition.Pluggable Database: XEPDB1 on default port 1521.Execution Utility: SQL*Plus Command Line Interface.2.2 Execution StepsConnect to Pluggable Database:Bashsqlplus myuser/password@localhost:1521/XEPDB1
+# PL/SQL ASSIGNMENT ONE: SUNRISE SUPERMARKET DATABASE REPORT
+
+- **Course:** Database Systems / PL/SQL
+- **Student Name:** Ruhumuriza Yvan Kenny
+- **Student ID:** 29179
+- **Academic Group:** Group B
+- **Submission Date:** September 2026
+- **RDBMS Platform:** Oracle Database 21c Express Edition (Release 21.3.0.0.0)
+- **Client Environment:** Oracle SQL*Plus
+
+---
+
+## 1. Executive Summary & Business Scenario
+
+### 1.1 Organizational Context
+Sunrise Supermarket is a regional grocery retailer operating across major urban markets, including Kigali, Musanze, Huye, and Rubavu. The supermarket provides consumers with essential retail products categorized across three primary departments: Produce, Dairy, and Bakery.
+
+### 1.2 Business Challenge
+Management requires clear, data-driven visibility into customer purchasing behaviors and transactional throughput. Key operational priorities include:
+1. Identifying customer geography and detecting registered accounts that remain inactive.
+2. Analyzing shopping basket composition to evaluate category volume.
+3. Segmenting high-value customers who contribute above-average revenue.
+4. Tracking repeat purchase cycles to determine customer retention and re-engagement windows.
+5. Monitoring storewide cumulative revenue velocity over time.
+
+---
+
+## 2. System Architecture & Setup Instructions
+
+### 2.1 Technical Prerequisites
+- **DBMS Engine:** Oracle Database 21c Express Edition.
+- **Pluggable Database:** `XEPDB1` on default port `1521`.
+- **Execution Utility:** SQL*Plus Command Line Interface.
+
+### 2.2 Execution Steps
+
+1. **Connect to Pluggable Database:**
+   ```bash
+   sqlplus myuser/password@localhost:1521/XEPDB1
 Configure Display Settings:Execute these formatting commands in SQL*Plus to prevent column clipping and line-wrapping:SQLSET LINESIZE 200;
 SET PAGESIZE 50;
 COLUMN customer_name FORMAT A20;
@@ -104,7 +142,7 @@ COMMIT;
 FROM orders o
 INNER JOIN customers c ON o.customer_id = c.customer_id
 ORDER BY o.order_id;
-Query Logic: Joins orders with customers using an INNER JOIN matching on customer_id.Expected Result Set: 15 records linking each order directly to a buyer and city.Business Interpretation: Enables the logistics and supply chain departments to correlate order volumes with geographic hubs, helping allocate fulfillment resources to cities with higher transaction activity.Query 2: Granular Line-Item DetailsLists every order line item with product name, department category, unit price, and purchased quantity.SQLSELECT 
+Query Logic: Joins orders with customers using an INNER JOIN matching on customer_id.Expected Result Set: 15 records linking each order directly to a buyer and city.Business Interpretation: Enables logistics and inventory teams to trace sales directly to geographic customer hubs, supporting localized stocking and regional demand analysis.Query 2: Granular Line-Item DetailsLists every order line item with product name, department category, unit price, and purchased quantity.SQLSELECT 
     oi.order_item_id,
     oi.order_id,
     p.product_name,
@@ -114,7 +152,7 @@ Query Logic: Joins orders with customers using an INNER JOIN matching on custome
 FROM order_items oi
 JOIN products p ON oi.product_id = p.product_id
 ORDER BY oi.order_item_id;
-Query Logic: Joins order_items with products on product_id.Expected Result Set: 27 records displaying product descriptions and transaction counts.Business Interpretation: Breaks down individual shopping baskets to highlight high-velocity SKUs (e.g., Bananas and Organic Apples) versus high-margin specialty items (e.g., Cheddar Cheese).Query 3: Inactive Customer AuditLists all customers and their corresponding orders, explicitly surfacing registered customers who have never placed an order.SQLSELECT 
+Query Logic: Joins order_items with products on product_id.Expected Result Set: 27 records displaying itemized purchases and counts.Business Interpretation: Breaks down individual shopping baskets to highlight high-volume SKUs versus high-margin specialty items, aiding merchandise assortment planning.Query 3: Inactive Customer AuditLists all customers and their corresponding orders, explicitly surfacing registered customers who have never placed an order.SQLSELECT 
     c.customer_id,
     c.customer_name,
     c.city,
@@ -123,7 +161,7 @@ Query Logic: Joins order_items with products on product_id.Expected Result Set: 
 FROM customers c
 LEFT JOIN orders o ON c.customer_id = o.customer_id
 ORDER BY c.customer_id, o.order_id;
-Query Logic: Applies a LEFT JOIN from customers to orders, ensuring customers without corresponding foreign keys in orders appear with NULL values.Expected Result Set: 16 rows. Fiona Gallagher (customer_id = 6) appears with NULL for order_id and order_date.Business Interpretation: Identifies inactive or abandoned registrations. Marketing can use this data to target non-converting users with onboarding promotions or discount vouchers.4.2 Section B: Common Table Expression (CTE) QueryQuery 4: High-Value Customer Spend Above AverageCalculates each customer's total expenditure and returns customers whose total spend exceeds the customer average.SQLWITH customer_spending AS (
+Query Logic: Applies a LEFT JOIN from customers to orders, ensuring customers without corresponding foreign keys in orders appear with NULL values.Expected Result Set: 16 rows. Fiona Gallagher (customer_id = 6) appears with NULL for order_id and order_date.Business Interpretation: Surfaces unconverted user registrations, enabling marketing teams to run targeted onboarding incentives and win-back promotions.4.2 Section B: Common Table Expression (CTE) QueryQuery 4: High-Value Customer Spend Above AverageCalculates each customer's total expenditure and returns customers whose total spend exceeds the customer average.SQLWITH customer_spending AS (
     SELECT 
         c.customer_id,
         c.customer_name,
@@ -141,7 +179,7 @@ SELECT
 FROM customer_spending
 WHERE total_spent > (SELECT AVG(total_spent) FROM customer_spending)
 ORDER BY total_spent DESC;
-Query Logic: The CTE (customer_spending) aggregates total expenditure per customer across all orders. The outer query filters this aggregated table using a scalar subquery that computes the overall mean spending.Business Interpretation: Identifies top-tier accounts generating above-average revenue. Management can target this cohort for exclusive loyalty tiers, concierge support, and early access programs.4.3 Section C: Advanced Window-Function QueriesQuery 5: Customer Expenditure RankingRanks customers based on total spend, ordered from highest to lowest.SQLWITH customer_totals AS (
+Query Logic: A CTE (customer_spending) aggregates total spend per customer. The outer query filters for accounts exceeding the storewide average expenditure using a scalar subquery.Business Interpretation: Segregates top-tier VIP accounts from casual buyers to prioritize loyalty programs, premium retention incentives, and personalized communications.4.3 Section C: Advanced Window-Function QueriesQuery 5: Customer Expenditure RankingRanks customers based on total spend, ordered from highest to lowest.SQLWITH customer_totals AS (
     SELECT 
         c.customer_id,
         c.customer_name,
@@ -158,7 +196,7 @@ SELECT
     total_spent,
     DENSE_RANK() OVER (ORDER BY total_spent DESC) AS spending_rank
 FROM customer_totals;
-Query Logic: Evaluates total customer spend within a CTE, then calculates relative rank using DENSE_RANK() over descending spend totals.Business Interpretation: Produces an unbroken rank sequence without skipping numbers in the event of ties, helping commercial teams prioritize accounts for retention programs.Query 6: Chronological Order SequencingAssigns an incrementing sequential number to each customer's orders based on order date.SQLSELECT 
+Query Logic: Evaluates total customer spend within a CTE, then calculates relative rank using DENSE_RANK() over descending spend totals.Business Interpretation: Produces an unbroken ranking sequence without skipping values in the event of ties, giving executive teams a clear view of customer revenue concentration.Query 6: Chronological Order SequencingAssigns an incrementing sequential number to each customer's orders based on order date.SQLSELECT 
     customer_id,
     order_id,
     order_date,
@@ -168,7 +206,7 @@ Query Logic: Evaluates total customer spend within a CTE, then calculates relati
     ) AS order_sequence_number
 FROM orders
 ORDER BY customer_id, order_sequence_number;
-Query Logic: Partitions order rows by customer_id and evaluates ROW_NUMBER() ordered chronologically by order_date.Business Interpretation: Separates initial customer conversions (order_sequence_number = 1) from recurring visits (order_sequence_number > 1), providing baseline data for customer lifecycle analysis.Query 7: Cumulative Revenue TrajectoryDisplays a running total of gross store revenue over time, ordered chronologically.SQLWITH daily_order_revenue AS (
+Query Logic: Partitions order rows by customer_id and evaluates ROW_NUMBER() ordered chronologically by order_date.Business Interpretation: Differentiates initial acquisition transactions (order_sequence_number = 1) from subsequent repeat purchases (order_sequence_number > 1) for lifecycle and cohort tracking.Query 7: Cumulative Revenue TrajectoryDisplays a running total of gross store revenue over time, ordered chronologically.SQLWITH daily_order_revenue AS (
     SELECT 
         o.order_id,
         o.order_date,
@@ -188,7 +226,7 @@ SELECT
     ) AS running_total_revenue
 FROM daily_order_revenue
 ORDER BY order_date, order_id;
-Query Logic: Aggregates line-item revenue per order, then applies SUM() OVER (...) with an explicit frame clause (ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW).Business Interpretation: Shows cumulative cash inflows across the business cycle, allowing management to assess revenue consistency and evaluate the impact of sales initiatives.Query 8: Inter-Order Frequency & Re-Order IntervalsCalculates the number of days elapsed between successive orders for repeat customers.SQLWITH order_gaps AS (
+Query Logic: Calculates individual order values within a CTE, then computes a running cumulative total using SUM() OVER (ORDER BY ... ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW).Business Interpretation: Tracks daily revenue velocity and cash flow trends over time, helping leadership assess growth trajectories and financial consistency.Query 8: Inter-Order Frequency & Re-Order IntervalsCalculates the number of days elapsed between successive orders for repeat customers.SQLWITH order_gaps AS (
     SELECT 
         customer_id,
         order_id,
@@ -211,4 +249,4 @@ SELECT
 FROM order_gaps
 WHERE total_customer_orders > 1
 ORDER BY customer_id, order_date;
-Query Logic: Utilizes LAG(order_date) partitioned by customer_id to retrieve the preceding purchase date, then computes elapsed days via native date subtraction (order_date - previous_order_date). Accounts with only one order are filtered out using COUNT(*) OVER (PARTITION BY customer_id).Business Interpretation: Measures shopping frequency and repurchase cadences. If an active buyer exceeds their normal re-order interval, automated reminders or loyalty offers can be triggered.5. Technical Challenges & ResolutionsChallenge EncounteredTechnical Root CauseResolution AppliedTerminal Output Line-WrappingSQL*Plus defaults to an 80-character terminal width, causing columns like VARCHAR2(100) to wrap across lines and repeat headers.   Configured SET LINESIZE 200;, SET PAGESIZE 50;, and set column display limits using COLUMN <col> FORMAT A<len>.Parent-Table Deletion Errors (ORA-02449)Attempting to drop parent tables (customers, orders) failed because child foreign keys were still referencing them.Re-sequenced drop commands in strict child-to-parent order (order_items → orders → products → customers) or applied CASCADE CONSTRAINTS PURGE.Aggregate Filtering in CTEsAggregate functions such as AVG() cannot be referenced directly in a WHERE clause without a subquery.Created a nested scalar subquery (SELECT AVG(total_spent) FROM customer_spending) within the outer query's WHERE clause.Inter-Order Date DifferenceEvaluating day intervals in SQL often relies on vendor-specific functions (like DATEDIFF).Used Oracle’s native date arithmetic (order_date - previous_order_date), which evaluates differences between DATE types directly into numeric days.
+Query Logic: Uses LAG(order_date) partitioned by customer_id to fetch the previous transaction date and computes elapsed days via native date arithmetic (order_date - previous_order_date). Filters out single-order accounts using COUNT(*) OVER (PARTITION BY customer_id).Business Interpretation: Quantifies the repurchase cadence per customer. Accounts that exceed their historical average re-order window can be automatically flagged for retention interventions.5. Technical Challenges & ResolutionsChallenge EncounteredTechnical Root CauseResolution AppliedTerminal Output Line-WrappingSQL*Plus defaults to an 80-character terminal width, causing columns like VARCHAR2(100) to wrap across lines and repeat headers.Configured SET LINESIZE 200;, SET PAGESIZE 50;, and set column display limits using COLUMN <col> FORMAT A<len>.Parent-Table Deletion Errors (ORA-02449)Attempting to drop parent tables (customers, orders) failed because child foreign keys were still referencing them.Re-sequenced drop commands in strict child-to-parent order (order_items → orders → products → customers) or applied CASCADE CONSTRAINTS PURGE.Aggregate Filtering in CTEsAggregate functions such as AVG() cannot be referenced directly in a WHERE clause without a subquery.Created a nested scalar subquery (SELECT AVG(total_spent) FROM customer_spending) within the outer query's WHERE clause.Inter-Order Date DifferenceEvaluating day intervals in SQL often relies on vendor-specific functions (like DATEDIFF).Used Oracle’s native date arithmetic (order_date - previous_order_date), which evaluates differences between DATE types directly into numeric days.
